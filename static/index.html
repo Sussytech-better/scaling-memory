@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔌 AI Plugin Maker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 12px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .radio-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .radio-option label {
+            margin-bottom: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .reset-btn {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            border-radius: 8px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px dashed #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .file-list {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-name {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .copy-btn,
+        .download-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover,
+        .download-btn:hover {
+            background: #764ba2;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .code-preview {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .code-preview pre {
+            margin: 0;
+            font-size: 12px;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .back-btn {
+            background: #f5f5f5;
+            color: #333;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .back-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title">🔌 AI Plugin Maker</div>
+            <div class="subtitle">Create amazing plugins with AI in seconds</div>
+        </header>
+
+        <div id="formContainer" class="form-container active">
+            <form id="pluginForm">
+                <div class="form-group">
+                    <label for="description">What do you want your plugin to do?</label>
+                    <textarea
+                        id="description"
+                        placeholder="Describe your plugin functionality in detail. Be as specific as possible!"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>What type of plugin?</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="vscode" name="type" value="vscode" checked>
+                            <label for="vscode">📦 VS Code Extension</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="nodejs" name="type" value="nodejs">
+                            <label for="nodejs">🟢 Node.js Module</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="browser" name="type" value="browser">
+                            <label for="browser">🌐 Browser Extension</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="javascript" name="type" value="javascript">
+                            <label for="javascript">⚡ Generic JavaScript</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Plugin name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        placeholder="e.g., my-awesome-plugin"
+                        required
+                    >
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="generate-btn" id="generateBtn">
+                        ✨ Generate Plugin
+                    </button>
+                    <button type="reset" class="reset-btn">Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="resultsContainer">
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Generating your plugin... This might take a moment</div>
+            </div>
+
+            <div id="successState" style="display: none;">
+                <div class="success-message">✅ Plugin generated successfully!</div>
+
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 10px; color: #333;">Generated Files:</h3>
+                    <div class="file-list" id="fileList"></div>
+                </div>
+
+                <button class="back-btn" onclick="resetForm()">← Create Another Plugin</button>
+            </div>
+
+            <div id="errorState" style="display: none;">
+                <div class="error-message" id="errorMessage"></div>
+                <button class="back-btn" onclick="resetForm()">← Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('pluginForm');
+        const formContainer = document.getElementById('formContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loadingState = document.getElementById('loadingState');
+        const successState = document.getElementById('successState');
+        const errorState = document.getElementById('errorState');
+        const generateBtn = document.getElementById('generateBtn');
+
+        resultsContainer.style.display = 'none';
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const description = document.getElementById('description').value;
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const name = document.getElementById('name').value;
+
+            if (!description.trim() || !name.trim()) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Show loading state
+            formContainer.classList.remove('active');
+            resultsContainer.style.display = 'block';
+            loadingState.style.display = 'block';
+            successState.style.display = 'none';
+            errorState.style.display = 'none';
+            generateBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ description, type, name }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate plugin');
+                }
+
+                // Show success state
+                loadingState.style.display = 'none';
+                successState.style.display = 'block';
+
+                // Display files
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+
+                Object.keys(data.files).forEach((filename) => {
+                    const content = data.files[filename];
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    fileItem.innerHTML = `
+                        <span class="file-name">${filename}</span>
+                        <div class="file-actions">
+                            <button type="button" class="copy-btn" onclick="copyToClipboard('${filename}', '${escapeHtml(content)}')">
+                                📋 Copy
+                            </button>
+                            <button type="button" class="download-btn" onclick="downloadFile('${filename}', '${escapeHtml(content)}')">
+                                ⬇️ Download
+                            </button>
+                        </div>
+                    `;
+                    fileList.appendChild(fileItem);
+                });
+
+                window.generatedFiles = data.files;
+            } catch (error) {
+                console.error('Error:', error);
+                loadingState.style.display = 'none';
+                errorState.style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message;
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+
+        function resetForm() {
+            form.reset();
+            formContainer.classList.add('active');
+            resultsContainer.style.display = 'none';
+            loadingState.style.display = 'block';
+            successState.style.display = 'none';
+            errorState.style.display = 'none';
+        }
+
+        function copyToClipboard(filename, content) {
+            const decoded = decodeHtml(content);
+            navigator.clipboard.writeText(decoded).then(() => {
+                alert(`✓ ${filename} copied to clipboard`);
+            }).catch(() => {
+                alert('Failed to copy');
+            });
+        }
+
+        function downloadFile(filename, content) {
+            const decoded = decodeHtml(content);
+            const blob = new Blob([decoded], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function decodeHtml(html) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = html;
+            return txt.value;
+        }
+    </script>
+</body>
+</html>
