@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔌 AI Plugin Maker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.24.0/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 12px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .radio-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .radio-option label {
+            margin-bottom: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .reset-btn {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            border-radius: 8px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px dashed #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .file-list {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-name {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #333;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .copy-btn,
+        .download-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover,
+        .download-btn:hover {
+            background: #764ba2;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+            word-wrap: break-word;
+        }
+
+        .back-btn {
+            background: #f5f5f5;
+            color: #333;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .back-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .file-item {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .file-actions {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .copy-btn,
+            .download-btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title">🔌 AI Plugin Maker</div>
+            <div class="subtitle">Create amazing plugins with AI in seconds</div>
+        </header>
+
+        <div id="formContainer" class="form-container active">
+            <div class="info-box">
+                💡 Get your free API key at <a href="https://console.anthropic.com" target="_blank" style="color: inherit; font-weight: bold;">console.anthropic.com</a>
+            </div>
+
+            <form id="pluginForm">
+                <div class="form-group">
+                    <label for="apiKey">Anthropic API Key</label>
+                    <input
+                        type="password"
+                        id="apiKey"
+                        placeholder="sk-ant-..."
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="description">What do you want your plugin to do?</label>
+                    <textarea
+                        id="description"
+                        placeholder="Describe your plugin functionality in detail. Be as specific as possible!"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>What type of plugin?</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="vscode" name="type" value="vscode" checked>
+                            <label for="vscode">📦 VS Code Extension</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="nodejs" name="type" value="nodejs">
+                            <label for="nodejs">🟢 Node.js Module</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="browser" name="type" value="browser">
+                            <label for="browser">🌐 Browser Extension</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="javascript" name="type" value="javascript">
+                            <label for="javascript">⚡ Generic JavaScript</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Plugin name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        placeholder="e.g., my-awesome-plugin"
+                        required
+                    >
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="generate-btn" id="generateBtn">
+                        ✨ Generate Plugin
+                    </button>
+                    <button type="reset" class="reset-btn">Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="resultsContainer">
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Generating your plugin... This might take a moment</div>
+            </div>
+
+            <div id="successState" style="display: none;">
+                <div class="success-message">✅ Plugin generated successfully!</div>
+
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #333;">Generated Files:</h3>
+                    <div class="file-list" id="fileList"></div>
+                </div>
+
+                <button class="back-btn" onclick="resetForm()">← Create Another Plugin</button>
+            </div>
+
+            <div id="errorState" style="display: none;">
+                <div class="error-message" id="errorMessage"></div>
+                <button class="back-btn" onclick="resetForm()">← Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('pluginForm');
+        const formContainer = document.getElementById('formContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loadingState = document.getElementById('loadingState');
+        const successState = document.getElementById('successState');
+        const errorState = document.getElementById('errorState');
+        const generateBtn = document.getElementById('generateBtn');
+
+        resultsContainer.style.display = 'none';
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const apiKey = document.getElementById('apiKey').value;
+            const description = document.getElementById('description').value;
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const name = document.getElementById('name').value;
+
+            if (!apiKey.trim() || !description.trim() || !name.trim()) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Show loading state
+            formContainer.classList.remove('active');
+            resultsContainer.style.display = 'block';
+            loadingState.style.display = 'block';
+            successState.style.display = 'none';
+            errorState.style.display = 'none';
+            generateBtn.disabled = true;
+
+            try {
+                const client = new Anthropic.default({ apiKey });
+                const prompt = buildPrompt(description, type, name);
+
+                const message = await client.messages.create({
+                    model: 'claude-3-5-sonnet-20241022',
+                    max_tokens: 4096,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: prompt,
+                        },
+                    ],
+                });
+
+                const responseText =
+                    message.content[0].type === 'text' ? message.content[0].text : '';
+                const files = parsePluginCode(responseText, type);
+
+                // Show success state
+                loadingState.style.display = 'none';
+                successState.style.display = 'block';
+
+                // Display files
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+
+                Object.keys(files).forEach((filename) => {
+                    const content = files[filename];
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    fileItem.innerHTML = `
+                        <span class="file-name">${escapeHtml(filename)}</span>
+                        <div class="file-actions">
+                            <button type="button" class="copy-btn" onclick="copyToClipboard('${escapeHtml(filename)}', \`${escapeForJS(content)}\`)">
+                                📋 Copy
+                            </button>
+                            <button type="button" class="download-btn" onclick="downloadFile('${escapeHtml(filename)}', \`${escapeForJS(content)}\`)">
+                                ⬇️ Download
+                            </button>
+                        </div>
+                    `;
+                    fileList.appendChild(fileItem);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                loadingState.style.display = 'none';
+                errorState.style.display = 'block';
+                document.getElementById('errorMessage').textContent = 
+                    error instanceof Error ? error.message : 'Failed to generate plugin';
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+
+        function buildPrompt(description, type, name) {
+            const typeInstructions = getTypeInstructions(type);
+
+            return `You are an expert plugin developer. Create a complete, production-ready plugin based on this description:
+
+Plugin Name: ${name}
+Plugin Type: ${type}
+Description: ${description}
+
+${typeInstructions}
+
+Generate the complete plugin code with all necessary files. Format your response as follows:
+
+FILE: filename.extension
+\`\`\`language
+code here
+\`\`\`
+
+FILE: another_file.json
+\`\`\`json
+code here
+\`\`\`
+
+Make sure to include:
+1. All necessary configuration files (package.json, tsconfig.json, manifest.json, etc.)
+2. Main implementation files
+3. Type definitions if applicable
+4. Basic documentation/comments
+5. Error handling
+
+Be thorough and create a complete, working plugin.`;
+        }
+
+        function getTypeInstructions(type) {
+            const instructions = {
+                vscode: `This is a VS Code extension. Include:
+- package.json with proper extension metadata
+- extension.ts or extension.js as the main entry point
+- A simple activation function
+- README.md with usage instructions`,
+
+                nodejs: `This is a Node.js module. Include:
+- package.json with proper module information
+- index.js or index.ts as the main export
+- Proper exports and error handling
+- README.md with usage examples`,
+
+                browser: `This is a browser extension. Include:
+- manifest.json (v3)
+- background.js or service worker
+- popup.html and popup.js if needed
+- content.js if needed
+- README.md`,
+
+                javascript: `This is a generic JavaScript module. Include:
+- package.json
+- index.js or index.ts
+- README.md with examples`,
+            };
+
+            return instructions[type] || instructions.javascript;
+        }
+
+        function parsePluginCode(responseText, type) {
+            const files = {};
+
+            // Extract files from the response
+            const filePattern = /FILE:\s*([^\n]+)\n```(?:[\w-]*\n)?([\s\S]*?)```/g;
+            let match;
+
+            while ((match = filePattern.exec(responseText)) !== null) {
+                const filename = match[1].trim();
+                const content = match[2].trim();
+                files[filename] = content;
+            }
+
+            // If no files were parsed, create a basic structure
+            if (Object.keys(files).length === 0) {
+                files['index.js'] = responseText;
+                files['package.json'] = JSON.stringify(
+                    {
+                        name: 'plugin',
+                        version: '1.0.0',
+                        main: 'index.js',
+                    },
+                    null,
+                    2
+                );
+            }
+
+            return files;
+        }
+
+        function resetForm() {
+            form.reset();
+            formContainer.classList.add('active');
+            resultsContainer.style.display = 'none';
+            loadingState.style.display = 'block';
+            successState.style.display = 'none';
+            errorState.style.display = 'none';
+        }
+
+        function copyToClipboard(filename, content) {
+            navigator.clipboard.writeText(content).then(() => {
+                alert(`✓ ${filename} copied to clipboard`);
+            }).catch(() => {
+                alert('Failed to copy');
+            });
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function escapeForJS(text) {
+            return text
+                .replace(/\\/g, '\\\\')
+                .replace(/`/g, '\\`')
+                .replace(/\$/g, '\\$');
+        }
+    </script>
+</body>
+</html>
