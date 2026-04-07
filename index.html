@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔌 AI Plugin Maker</title>
+    <title>⛏️ Minecraft Plugin Maker</title>
     <script src="https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.24.0/index.min.js"></script>
     <style>
         * {
@@ -353,8 +353,8 @@
 <body>
     <div class="container">
         <header>
-            <div class="title">🔌 AI Plugin Maker</div>
-            <div class="subtitle">Create amazing plugins with AI in seconds</div>
+            <div class="title">⛏️ Minecraft Plugin Maker</div>
+            <div class="subtitle">Create amazing Minecraft plugins with AI in seconds</div>
         </header>
 
         <div id="formContainer" class="form-container active">
@@ -374,32 +374,32 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="description">What do you want your plugin to do?</label>
+                    <label for="description">What do you want your Minecraft plugin to do?</label>
                     <textarea
                         id="description"
-                        placeholder="Describe your plugin functionality in detail. Be as specific as possible!"
+                        placeholder="e.g., A plugin that gives players custom titles with /title command, supports colors and animations"
                         required
                     ></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>What type of plugin?</label>
+                    <label>What type of Minecraft plugin?</label>
                     <div class="radio-group">
                         <div class="radio-option">
-                            <input type="radio" id="vscode" name="type" value="vscode" checked>
-                            <label for="vscode">📦 VS Code Extension</label>
+                            <input type="radio" id="bukkit" name="type" value="bukkit" checked>
+                            <label for="bukkit">🪓 Bukkit/Spigot (Java)</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" id="nodejs" name="type" value="nodejs">
-                            <label for="nodejs">🟢 Node.js Module</label>
+                            <input type="radio" id="paper" name="type" value="paper">
+                            <label for="paper">📄 Paper Server Plugin</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" id="browser" name="type" value="browser">
-                            <label for="browser">🌐 Browser Extension</label>
+                            <input type="radio" id="forge" name="type" value="forge">
+                            <label for="forge">⚙️ Minecraft Forge Mod</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" id="javascript" name="type" value="javascript">
-                            <label for="javascript">⚡ Generic JavaScript</label>
+                            <input type="radio" id="fabric" name="type" value="fabric">
+                            <label for="fabric">🧵 Fabric Mod</label>
                         </div>
                     </div>
                 </div>
@@ -409,7 +409,7 @@
                     <input
                         type="text"
                         id="name"
-                        placeholder="e.g., my-awesome-plugin"
+                        placeholder="e.g., CustomTitles, PlayerShops, AntiCheat"
                         required
                     >
                 </div>
@@ -537,7 +537,7 @@
         function buildPrompt(description, type, name) {
             const typeInstructions = getTypeInstructions(type);
 
-            return `You are an expert plugin developer. Create a complete, production-ready plugin based on this description:
+            return `You are an expert Minecraft plugin developer. Create a complete, production-ready Minecraft plugin based on this description:
 
 Plugin Name: ${name}
 Plugin Type: ${type}
@@ -558,43 +558,58 @@ code here
 \`\`\`
 
 Make sure to include:
-1. All necessary configuration files (package.json, tsconfig.json, manifest.json, etc.)
-2. Main implementation files
-3. Type definitions if applicable
-4. Basic documentation/comments
-5. Error handling
+1. All necessary configuration files (pom.xml, build.gradle, plugin.yml, etc.)
+2. Main plugin class and implementation files
+3. Command handlers if applicable
+4. Event listeners if applicable
+5. Configuration files (config.yml)
+6. Proper error handling and logging
+7. JavaDoc comments
+8. README.md with setup and usage instructions
 
 Be thorough and create a complete, working plugin.`;
         }
 
         function getTypeInstructions(type) {
             const instructions = {
-                vscode: `This is a VS Code extension. Include:
-- package.json with proper extension metadata
-- extension.ts or extension.js as the main entry point
-- A simple activation function
-- README.md with usage instructions`,
+                bukkit: `This is a Bukkit/Spigot plugin (Java). Include:
+- pom.xml with Bukkit/Spigot API dependency
+- Main plugin class extending JavaPlugin
+- plugin.yml with proper metadata (name, version, main class, commands, permissions)
+- Command implementations
+- Event listeners
+- README.md with installation and command instructions
+- Use proper logging with getLogger()`,
 
-                nodejs: `This is a Node.js module. Include:
-- package.json with proper module information
-- index.js or index.ts as the main export
-- Proper exports and error handling
-- README.md with usage examples`,
+                paper: `This is a Paper Server plugin (Java). Include:
+- build.gradle or pom.xml with Paper API dependency
+- Main plugin class extending JavaPlugin
+- plugin.yml with proper metadata
+- Command and event implementations optimized for Paper
+- Configuration system (config.yml)
+- Proper async task handling
+- README.md with setup instructions`,
 
-                browser: `This is a browser extension. Include:
-- manifest.json (v3)
-- background.js or service worker
-- popup.html and popup.js if needed
-- content.js if needed
-- README.md`,
+                forge: `This is a Minecraft Forge mod (Java). Include:
+- build.gradle configured for Forge development
+- Main mod class with @Mod annotation
+- Common event handlers
+- Client and server setup classes if applicable
+- mods.toml configuration file
+- Recipe implementations if applicable
+- Block/Item classes if applicable`,
 
-                javascript: `This is a generic JavaScript module. Include:
-- package.json
-- index.js or index.ts
-- README.md with examples`,
+                fabric: `This is a Fabric mod (Java). Include:
+- build.gradle configured for Fabric
+- fabric.mod.json metadata file
+- Main mod initializer class
+- Entrypoint implementations
+- Event handlers using Fabric API
+- Config system if applicable
+- Proper mixins if needed`,
             };
 
-            return instructions[type] || instructions.javascript;
+            return instructions[type] || instructions.bukkit;
         }
 
         function parsePluginCode(responseText, type) {
